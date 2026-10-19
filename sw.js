@@ -1,5 +1,5 @@
 // Uygulama kabuğunu önbelleğe alır; eczane verisi her zaman ağdan gelir.
-const CACHE = "eczane-v3";
+const CACHE = "eczane-v4";
 const SHELL = ["./", "index.html", "style.css", "app.js", "icon.svg", "icon-192.png", "icon-512.png", "manifest.webmanifest", "ilceler.json"];
 
 self.addEventListener("install", e => e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))));

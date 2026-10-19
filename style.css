@@ -19,8 +19,10 @@ button.primary { background:var(--accent); color:#fff; border-color:var(--accent
 .modes button.on { background:var(--text); color:var(--card); border-color:var(--text); }
 #map { height:380px; border-radius:12px; border:1px solid var(--border); }
 .layout { display:grid; gap:16px; grid-template-columns:1fr; }
-@media (min-width:860px){ .layout { grid-template-columns:360px 1fr; } #map { height:560px; } }
-#list { display:grid; gap:8px; max-height:560px; overflow:auto; }
+@media (min-width:860px){ .layout { grid-template-columns:360px 1fr; } #map { height:560px; } #list { max-height:560px; overflow:auto; } }
+/* Telefonda iç içe kaydırma yok: harita üstte, liste sayfayla birlikte kayar */
+@media (max-width:859px){ #map { order:-1; height:300px; } }
+#list { display:grid; gap:8px; }
 .ph { padding:12px; border:1px solid var(--border); border-radius:10px; cursor:pointer; }
 .ph.sel { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent) inset; }
 .ph h3 { margin:0 0 4px; font-size:15px; }
