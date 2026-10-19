@@ -17,8 +17,8 @@ ve tarayıcıda `http://localhost:8080` açın. Telefonda Chrome/Safari ile aç�
 ## Veri kaynakları
 
 - **Gündüz (tüm eczaneler):** OpenStreetMap (Overpass API), anahtar gerekmez.
-- **Nöbetçi eczaneler:** CollectAPI. Anahtar uygulamada değil, GitHub'da gizli olarak durur. GitHub Actions günde iki kez (09:15 ve 18:15) 81 ilin listesini çekip `nobetci/<il>.json` olarak siteyle birlikte yayınlar.
-  Kurulum: depoda **Settings → Secrets and variables → Actions → New repository secret**, adı `COLLECTAPI_KEY`, değeri CollectAPI anahtarı. Sonra Actions'tan "GitHub Pages" iş akışını bir kez elle çalıştırın.
+- **Nöbetçi eczaneler:** CollectAPI. Anahtar uygulamada değil, GitHub'da gizli olarak durur. GitHub Actions her sabah 09:15'te listeyi çekip `nobetci/<il>.json` olarak siteyle birlikte yayınlar. Kod değişikliği push'larında API çağrılmaz, son liste korunur.
+  Kurulum: depoda **Settings → Secrets and variables → Actions → New repository secret**, adı `COLLECTAPI_KEY`, değeri CollectAPI anahtarı. İsteğe bağlı: aynı sayfadaki **Variables** sekmesinde `NOBETCI_ILLER` değişkeni (örn. `İstanbul,Ankara,İzmir`) sadece o illeri çeker. Ücretsiz plan (ayda 100 istek) için en fazla 3 il seçin; tanımlanmazsa sadece İstanbul çekilir (ayda ~30 istek). Sonra Actions'tan "GitHub Pages" iş akışını bir kez elle çalıştırın.
 - **İl/ilçe listesi:** `ilceler.json` (81 il, 973 ilçe; kaynak: turkey-neighbourhoods, MIT).
 
 ## Mobil uygulama (Android / iOS)

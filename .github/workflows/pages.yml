@@ -1,4 +1,4 @@
-# main dalına her push'ta ve günde iki kez (nöbetçi listesi yenilensin diye) siteyi GitHub Pages'e yayınlar.
+# main dalına her push'ta ve her sabah (nöbetçi listesi yenilensin diye) siteyi GitHub Pages'e yayınlar.
 name: GitHub Pages
 
 on:
@@ -6,8 +6,8 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    # Türkiye saatiyle 09:15 ve 18:15
-    - cron: "15 6,15 * * *"
+    # Türkiye saatiyle 09:15
+    - cron: "15 6 * * *"
 
 permissions:
   contents: read
@@ -32,6 +32,7 @@ jobs:
         run: node scripts/nobetci-guncelle.js
         env:
           COLLECTAPI_KEY: ${{ secrets.COLLECTAPI_KEY }}
+          NOBETCI_ILLER: ${{ vars.NOBETCI_ILLER || 'İstanbul' }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
