@@ -1,0 +1,23 @@
+{
+  "name": "eczane-bul",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Eczane Bul: web (PWA) ve Android/iOS uygulaması",
+  "scripts": {
+    "web": "npx --yes http-server . -p 8080 -c-1",
+    "build": "node scripts/build.js",
+    "android:ekle": "npm run build && npx cap add android && node scripts/mobil-izinler.js",
+    "ios:ekle": "npm run build && npx cap add ios && node scripts/mobil-izinler.js",
+    "sync": "npm run build && npx cap sync && node scripts/mobil-izinler.js",
+    "android": "npm run sync && npx cap open android",
+    "ios": "npm run sync && npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.3"
+  }
+}

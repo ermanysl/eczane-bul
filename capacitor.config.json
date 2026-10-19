@@ -1,0 +1,7 @@
+{
+  "appId": "com.eczanebul.app",
+  "appName": "Eczane Bul",
+  "webDir": "www",
+  "android": { "allowMixedContent": false },
+  "server": { "androidScheme": "https" }
+}
