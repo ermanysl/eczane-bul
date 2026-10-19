@@ -5,7 +5,7 @@ const path = require("path");
 
 const root = path.join(__dirname, "..");
 const out = path.join(root, "www");
-const FILES = ["index.html", "app.js", "style.css", "sw.js", "manifest.webmanifest",
+const FILES = ["index.html", "app.js", "style.css", "sw.js", "manifest.webmanifest", "ilceler.json",
   "icon.svg", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "apple-touch-icon.png"];
 
 fs.rmSync(out, { recursive: true, force: true });

@@ -14,6 +14,13 @@ python -m http.server 8080
 
 ve tarayıcıda `http://localhost:8080` açın. Telefonda Chrome/Safari ile açıp "Ana ekrana ekle" derseniz uygulama gibi tam ekran açılır.
 
+## Veri kaynakları
+
+- **Gündüz (tüm eczaneler):** OpenStreetMap (Overpass API), anahtar gerekmez.
+- **Nöbetçi eczaneler:** CollectAPI. Anahtar uygulamada değil, GitHub'da gizli olarak durur. GitHub Actions günde iki kez (09:15 ve 18:15) 81 ilin listesini çekip `nobetci/<il>.json` olarak siteyle birlikte yayınlar.
+  Kurulum: depoda **Settings → Secrets and variables → Actions → New repository secret**, adı `COLLECTAPI_KEY`, değeri CollectAPI anahtarı. Sonra Actions'tan "GitHub Pages" iş akışını bir kez elle çalıştırın.
+- **İl/ilçe listesi:** `ilceler.json` (81 il, 973 ilçe; kaynak: turkey-neighbourhoods, MIT).
+
 ## Mobil uygulama (Android / iOS)
 
 Gerekenler: [Node.js](https://nodejs.org), Android için [Android Studio](https://developer.android.com/studio), iOS için Mac + Xcode.

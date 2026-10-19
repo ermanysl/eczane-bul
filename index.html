@@ -30,14 +30,13 @@
     <div class="row" style="margin-top:10px">
       <button class="primary" id="btnLoc">📍 Konumumu kullan</button>
       <select id="il"><option value="">İl seçin</option></select>
-      <input id="ilce" placeholder="İlçe (örn. Kadıköy)">
+      <select id="ilce"><option value="">Tüm ilçeler</option></select>
       <button id="btnSearch">Ara</button>
     </div>
     <div id="status" class="muted small"></div>
     <details>
       <summary class="muted small">Ayarlar</summary>
       <div class="row" style="margin-top:8px">
-        <input id="apikey" placeholder="CollectAPI anahtarı (boşsa nöbetçi için demo veri)">
         <select id="radius">
           <option value="1500">1,5 km</option>
           <option value="3000" selected>3 km</option>

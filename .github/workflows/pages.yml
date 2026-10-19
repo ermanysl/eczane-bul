@@ -1,10 +1,13 @@
-# main dalına her push'ta web sürümünü GitHub Pages'e yayınlar.
+# main dalına her push'ta ve günde iki kez (nöbetçi listesi yenilensin diye) siteyi GitHub Pages'e yayınlar.
 name: GitHub Pages
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Türkiye saatiyle 09:15 ve 18:15
+    - cron: "15 6,15 * * *"
 
 permissions:
   contents: read
@@ -25,6 +28,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Web dosyalarını hazırla
         run: node scripts/build.js
+      - name: Nöbetçi eczaneleri güncelle
+        run: node scripts/nobetci-guncelle.js
+        env:
+          COLLECTAPI_KEY: ${{ secrets.COLLECTAPI_KEY }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -1,4 +1,6 @@
-const ILLER = ["Adana","Adıyaman","Afyonkarahisar","Ağrı","Aksaray","Amasya","Ankara","Antalya","Ardahan","Artvin","Aydın","Balıkesir","Bartın","Batman","Bayburt","Bilecik","Bingöl","Bitlis","Bolu","Burdur","Bursa","Çanakkale","Çankırı","Çorum","Denizli","Diyarbakır","Düzce","Edirne","Elazığ","Erzincan","Erzurum","Eskişehir","Gaziantep","Giresun","Gümüşhane","Hakkari","Hatay","Iğdır","Isparta","İstanbul","İzmir","Kahramanmaraş","Karabük","Karaman","Kars","Kastamonu","Kayseri","Kilis","Kırıkkale","Kırklareli","Kırşehir","Kocaeli","Konya","Kütahya","Malatya","Manisa","Mardin","Mersin","Muğla","Muş","Nevşehir","Niğde","Ordu","Osmaniye","Rize","Sakarya","Samsun","Şanlıurfa","Siirt","Sinop","Şırnak","Sivas","Tekirdağ","Tokat","Trabzon","Tunceli","Uşak","Van","Yalova","Yozgat","Zonguldak"];
+// Mobil uygulama verileri yayındaki siteden okur; web sürümü kendi klasöründen.
+const isNative = !!window.Capacitor?.isNativePlatform?.();
+const DATA_BASE = isNative ? "https://ermanysl.github.io/eczane-bul/" : "";
 
 // Eczanelerin olağan çalışma saatleri; bu aralık dışında ve pazar günleri nöbetçi moda geçilir.
 const DAY_START = 9, DAY_END = 19;
@@ -9,12 +11,22 @@ const store = {
   set(k, v){ try { localStorage.setItem(k, v); } catch {} }
 };
 
-const ilSel = $("il");
-ILLER.forEach(i => ilSel.add(new Option(i, i)));
-$("apikey").value = store.get("collectapi_key") || "";
+const ilSel = $("il"), ilceSel = $("ilce");
+let ILCELER = {};
+const ilcelerHazir = fetch(DATA_BASE + "ilceler.json").then(r => r.json()).then(j => {
+  ILCELER = j;
+  Object.keys(j).forEach(i => ilSel.add(new Option(i, i)));
+}).catch(() => status("İl/ilçe listesi yüklenemedi."));
+function fillIlce(il, ilce = ""){
+  ilceSel.length = 1;
+  (ILCELER[il] || []).forEach(i => ilceSel.add(new Option(i, i)));
+  ilceSel.value = findName(ILCELER[il] || [], ilce) || "";
+}
+ilSel.onchange = () => fillIlce(ilSel.value);
+const trKey = s => (s || "").toLocaleLowerCase("tr").trim();
+function findName(list, name){ return list.find(x => trKey(x) === trKey(name)); }
 $("radius").value = store.get("radius") || "3000";
 $("btnSave").onclick = () => {
-  store.set("collectapi_key", $("apikey").value.trim());
   store.set("radius", $("radius").value);
   status("Ayarlar kaydedildi.");
 };
@@ -74,9 +86,10 @@ $("btnLoc").onclick = () => {
       const a = (await r.json()).address || {};
       const il = norm(a.province || a.state || a.city);
       const ilce = norm(a.town || a.county || a.district || a.suburb || a.city_district);
-      if (ILLER.includes(il)) ilSel.value = il;
-      $("ilce").value = ilce;
-      status(`Konumunuz: ${il} / ${ilce}`);
+      await ilcelerHazir;
+      ilSel.value = findName(Object.keys(ILCELER), il) || "";
+      fillIlce(ilSel.value, ilce);
+      status(`Konumunuz: ${ilSel.value || il} / ${ilceSel.value || ilce}`);
     } catch { status("İl/ilçe bulunamadı; gündüz modu yine de konumunuzla çalışır."); }
     search();
   }, err => status("Konum izni verilmedi (" + err.message + "). İl/ilçeyi elle seçin."),
@@ -85,7 +98,7 @@ $("btnLoc").onclick = () => {
 
 $("btnSearch").onclick = async () => {
   me = null; // elle seçimde mesafe ilçe merkezine göre değil, konum yoksa gösterilmez
-  center = await geocodeArea(ilSel.value, $("ilce").value.trim());
+  center = await geocodeArea(ilSel.value, ilceSel.value);
   search();
 };
 
@@ -111,8 +124,8 @@ async function search(){
   items = data.map(p => ({ ...p, km: me && p.pos ? haversine(me, p.pos) : null }))
     .sort((a, b) => (a.km ?? (ref && a.pos ? haversine(ref, a.pos) : 1e9)) - (b.km ?? (ref && b.pos ? haversine(ref, b.pos) : 1e9)));
   render();
-  if (!items.some(p => p.demo))
-    status(`${items.length} ${mode === "day" ? "eczane" : "nöbetçi eczane"} bulundu${me ? ", en yakına göre sıralandı" : ""}.`);
+  status(`${items.length} ${mode === "day" ? "eczane" : "nöbetçi eczane"} bulundu${me ? ", en yakına göre sıralandı" : ""}.` +
+    (data.time ? ` Liste güncelleme: ${data.time}` : ""));
 }
 
 // Gündüz: OpenStreetMap'teki tüm eczaneler (Overpass API, ücretsiz)
@@ -131,20 +144,19 @@ async function fetchAllNearby(){
   });
 }
 
-// Gece: nöbetçi eczaneler (CollectAPI)
+// Gece: nöbetçi eczaneler. Liste günde iki kez GitHub Actions ile güncellenir (scripts/nobetci-guncelle.js).
+const slug = s => s.toLocaleLowerCase("tr").replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ü/g, "u")
+  .replace(/ş/g, "s").replace(/ö/g, "o").replace(/ç/g, "c").replace(/[^a-z0-9]+/g, "-");
 async function fetchDuty(){
-  const il = ilSel.value, ilce = $("ilce").value.trim();
+  const il = ilSel.value, ilce = ilceSel.value;
   if (!il) { status("Nöbetçi eczane için il seçin."); return null; }
-  const key = store.get("collectapi_key") || $("apikey").value.trim();
-  if (!key) { status("Demo veri gösteriliyor (Ayarlar'a CollectAPI anahtarı girilmedi)."); return demoData(il, ilce); }
-  const url = `https://api.collectapi.com/health/dutyPharmacy?il=${encodeURIComponent(il)}` + (ilce ? `&ilce=${encodeURIComponent(ilce)}` : "");
-  const r = await fetch(url, { headers: { "content-type":"application/json", authorization: key.startsWith("apikey") ? key : "apikey " + key } });
+  const r = await fetch(`${DATA_BASE}nobetci/${slug(il)}.json`, { cache:"no-cache" });
+  if (r.status === 404) { status("Bu il için nöbetçi eczane listesi henüz hazır değil."); return null; }
+  if (!r.ok) throw new Error("HTTP " + r.status);
   const j = await r.json();
-  if (!j.success) throw new Error(j.message || "API hatası");
-  return j.result.map(d => {
-    const [lat, lng] = (d.loc || "").split(",").map(Number);
-    return { name: d.name, address: d.address, phone: d.phone, duty: true, pos: lat && lng ? [lat, lng] : null };
-  });
+  const list = j.items.filter(p => !ilce || trKey(p.ilce) === trKey(ilce)).map(p => ({ ...p, duty: true }));
+  list.time = new Date(j.time).toLocaleString("tr-TR", { dateStyle:"short", timeStyle:"short" });
+  return list;
 }
 
 function dirUrl(p){
@@ -187,18 +199,7 @@ function select(i, openPopup = true){
   if (m) { map.setView(m.getLatLng(), 16); if (openPopup) m.openPopup(); }
 }
 
-// API anahtarı yokken deneme amaçlı sahte nöbetçi eczaneler
-function demoData(il, ilce){
-  const c = me || center || [map.getCenter().lat, map.getCenter().lng];
-  return ["Şifa", "Hayat", "Merkez", "Güven", "Sağlık"].map((n, k) => ({
-    name: `${n} Eczanesi (DEMO)`, duty: true, demo: true,
-    address: `${ilce || "Merkez"} / ${il} – örnek adres ${k + 1}`, phone: "0212 000 00 0" + k,
-    pos: [c[0] + (Math.random() - .5) * 0.04, c[1] + (Math.random() - .5) * 0.04]
-  }));
-}
-
 // PWA: çevrimdışı kabuk + "ana ekrana ekle". Capacitor ile paketlenmiş mobil uygulamada dosyalar zaten cihazda, service worker gereksiz.
-const isNative = !!window.Capacitor?.isNativePlatform?.();
 if (!isNative && "serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 let installEvt = null;
 addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; $("btnInstall").hidden = false; });
